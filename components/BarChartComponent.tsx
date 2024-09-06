@@ -17,42 +17,6 @@ import {
 } from "@/components/ui/chart"
 import { Category, Collaborator, Expense, Project } from "@/prisma/prisma-client"
 
-export const description = "A mixed bar chart"
-
-const chartData = [
-  { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
-  { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
-  { browser: "firefox", visitors: 187, fill: "var(--color-firefox)" },
-  { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
-  { browser: "other", visitors: 90, fill: "var(--color-other)" },
-]
-
-const chartConfig = {
-  visitors: {
-    label: "Visitors",
-  },
-  chrome: {
-    label: "Chrome",
-    color: "hsl(var(--chart-1))",
-  },
-  safari: {
-    label: "Safari",
-    color: "hsl(var(--chart-2))",
-  },
-  firefox: {
-    label: "Firefox",
-    color: "hsl(var(--chart-3))",
-  },
-  edge: {
-    label: "Edge",
-    color: "hsl(var(--chart-4))",
-  },
-  other: {
-    label: "Other",
-    color: "hsl(var(--chart-5))",
-  },
-} satisfies ChartConfig
-
 type Props = {
 	projectData: {
 		expenses: Expense[] | undefined,
@@ -62,46 +26,90 @@ type Props = {
 	}
 }
 export function BarChartComponent({ projectData }: Props) {
-	const { expenses, project, collaborators, categories } = projectData;
+	const { expenses, categories } = projectData;
+	console.log(expenses, categories)
+	const data: {
+		category: string,
+		total: number,
+		fill: string
+	}[] = [] 
+	if (expenses && categories) {
+		for (let cat of categories) {
+			const categoryItem = {
+				category: cat.name.toLowerCase(),
+				total: 0,
+				fill: `var(--color-${cat.name.toLowerCase()})`
+			}
+			expenses.forEach(exp => {
+				if (exp.category === cat.id) categoryItem.total += Number(exp.amount) 
+			})
+			data.push(categoryItem)
+		}
+		console.log(data)
+	}
+	const config = {
+		total: {
+			label: "Total"
+		},
+		groceries: {
+			label: "Groceries",
+			color: "hsl(var(--chart-1))",
+		},
+		electronics: {
+			label: "Electronics",
+			color: "hsl(var(--chart-2))",
+		},
+		liquor: {
+			label: "Liquor",
+			color: "hsl(var(--chart-3))",
+		},
+	} satisfies ChartConfig
+	const numOfCategories = categories?.length || 1
+	console.log(numOfCategories)
+	const maxH = (numOfCategories*80)+'px' 
+
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Bar Chart - Mixed</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardTitle>Expenses by category</CardTitle>
+        <CardDescription>All time</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer 
-					config={chartConfig} 
-					className="min-h-[200px] max-h-[320px] w-full max-w-[1024px]"
+					config={config} 
+					className={`min-h-[200px] w-full max-w-[1024px]`}
+					style={{ maxHeight: `${maxH}` }}
 				>
           <BarChart
 						barSize={40}
 						barCategoryGap={1}
 						barGap={1}
             accessibilityLayer
-            data={chartData}
+            data={data}
             layout="vertical"
             margin={{
               left: 0,
             }}
           >
             <YAxis
-              dataKey="browser"
+              dataKey="category"
+							width={96}
+							className="-mr-4"
               type="category"
               tickLine={false}
-              tickMargin={5}
+              tickMargin={10}
               axisLine={false}
               tickFormatter={(value) =>
-                chartConfig[value as keyof typeof chartConfig]?.label
+                config[value as keyof typeof config]?.label
               }
             />
-            <XAxis dataKey="visitors" type="number" hide />
+            <XAxis dataKey="total" type="number" hide />
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
-            <Bar dataKey="visitors" layout="vertical" radius={5} />
+            <Bar dataKey="total" layout="vertical" radius={5} />
           </BarChart>
         </ChartContainer>
       </CardContent>
