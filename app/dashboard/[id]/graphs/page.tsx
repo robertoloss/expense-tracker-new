@@ -1,8 +1,7 @@
 import authenticateUser from "@/app/actions/authenticateUser"
 import getAllAboutProject from "@/app/actions/getAllAboutProject"
-import { BarChartComponent } from "@/components/BarChartComponent"
 import { Category, Collaborator, Expense, Project } from "@/prisma/prisma-client"
-
+import GraphPageContent from "@/components/GraphPageContent"
 
 type Props = {
 	params: {
@@ -22,7 +21,7 @@ export default async function GraphPage({ params } : Props) {
 
 	return (
 		<div className="p-4 bg-muted/40 h-[calc(100vh-56px)]">
-			<BarChartComponent projectData={projectData} />
+			<GraphPageContent projectData={projectData} />
 		</div>
 	)
 }

@@ -1,5 +1,5 @@
 "use client"
-import { Bar, BarChart, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, XAxis, YAxis, LabelList } from "recharts"
 
 import {
   Card,
@@ -10,12 +10,13 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import {
-  ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { Category, Collaborator, Expense, Project } from "@/prisma/prisma-client"
+import { ChartConfigType } from "./GraphPageContent"
+import { ContentType } from "recharts/types/component/DefaultLegendContent"
 
 type Props = {
 	projectData: {
@@ -23,11 +24,11 @@ type Props = {
 		project: Project | undefined,
 		collaborators: Collaborator[] | undefined,
 		categories: Category[] | undefined
-	}
+	},
+	chartConfig: ChartConfigType
 }
-export function BarChartComponent({ projectData }: Props) {
+export function BarChartComponent({ projectData, chartConfig }: Props) {
 	const { expenses, categories } = projectData;
-	console.log(expenses, categories)
 	const data: {
 		category: string,
 		total: number,
@@ -45,39 +46,32 @@ export function BarChartComponent({ projectData }: Props) {
 			})
 			data.push(categoryItem)
 		}
-		console.log(data)
 	}
-	const config = {
-		total: {
-			label: "Total"
-		},
-		groceries: {
-			label: "Groceries",
-			color: "hsl(var(--chart-1))",
-		},
-		electronics: {
-			label: "Electronics",
-			color: "hsl(var(--chart-2))",
-		},
-		liquor: {
-			label: "Liquor",
-			color: "hsl(var(--chart-3))",
-		},
-	} satisfies ChartConfig
 	const numOfCategories = categories?.length || 1
-	console.log(numOfCategories)
 	const maxH = (numOfCategories*80)+'px' 
 
+	const renderCustomizedLabel = (props: any) => {
+		const { x, y, height, value } = props;
+
+		return (
+			<g>
+				<rect x={x + 4} y={y + height/4} width="40" height="20" rx={4} fill="transparent"/>
+				<text x={x + 24} y={y + height/2 + 1} fill="#fff" textAnchor="middle" dominantBaseline="middle">
+					{value}
+				</text>
+			</g>
+		);
+	};
 
   return (
-    <Card>
+    <Card className="flex-grow">
       <CardHeader>
         <CardTitle>Expenses by category</CardTitle>
         <CardDescription>All time</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer 
-					config={config} 
+					config={chartConfig} 
 					className={`min-h-[200px] w-full max-w-[1024px]`}
 					style={{ maxHeight: `${maxH}` }}
 				>
@@ -101,7 +95,7 @@ export function BarChartComponent({ projectData }: Props) {
               tickMargin={10}
               axisLine={false}
               tickFormatter={(value) =>
-                config[value as keyof typeof config]?.label
+                chartConfig[value as keyof typeof chartConfig]?.label
               }
             />
             <XAxis dataKey="total" type="number" hide />
@@ -109,7 +103,16 @@ export function BarChartComponent({ projectData }: Props) {
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
-            <Bar dataKey="total" layout="vertical" radius={5} />
+            <Bar dataKey="total" layout="vertical" radius={5} >
+							<LabelList
+								content={renderCustomizedLabel}
+                dataKey="total"
+                position="insideLeft"
+                offset={8}
+                className="fill-[--color-label]"
+                fontSize={12}
+              />
+            </Bar>
           </BarChart>
         </ChartContainer>
       </CardContent>

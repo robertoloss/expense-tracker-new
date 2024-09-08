@@ -26,9 +26,7 @@ import { useAppStore } from "@/utils/zustand/store"
 const zComment = z.string().max(50, {
 	message: "Comment must have at most 50 characters.",
 })
-const zAmount = z.number({
-	message: "Not a number"
-}).nonnegative({
+const zAmount = z.number().nonnegative({
 	message: "Amount cannot be negative"
 })
 
@@ -91,8 +89,6 @@ export default function AddExpense({ updateExpenses, project, user, collaborator
 			const testComment = zComment.safeParse(comment)
 			const testAmount = zAmount.safeParse(amount)
 			if (!testComment.success || !testAmount || !amount) {
-				console.error("test comment error: ", testComment.error?.issues)
-				console.error("terst comment error issues: ", testAmount.error?.issues)
 				setIsLoading(false)
 				return false
 			}
@@ -142,7 +138,6 @@ export default function AddExpense({ updateExpenses, project, user, collaborator
 			.from('Expense')
 			.insert(newExpenseNew)
 		await getExpenses()
-		setTimeout(()=>setIsLoading(false),500)
   }
 
 	function resetModal() {

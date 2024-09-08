@@ -12,6 +12,7 @@ import DDownCategory from "./DDownCategory"
 import DDownUser from "./DDownUser"
 import DollarAmountCardBig from "./DollarAmountCardBig"
 import ResetDDownsButton from "./ResetDDownsButton"
+import { useAppStore } from "@/utils/zustand/store"
 
 export type UpdateExpenses = (action: {
     action: 'create' | 'delete' | 'update';
@@ -34,6 +35,7 @@ export default function Dashboard({ expenses, user, collaborators, project, cate
 	const [ period, setPeriod ] = useState('all')
 	const [ selectedCategory, setSelectedCategory ] = useState('all')
 	const [ selectedUser, setSelectedUser ] = useState('all')
+	const setIsLoading = useAppStore(state => state.setIsLoading)
 	const [ optimisticExpenses, updateExpenses ] = useOptimistic(filteredExpenses, 
 		(state, {action, expense, id} : 
 		{action: 'create' | 'delete' | 'update', expense?: Expense, id?: string }) => {
@@ -72,7 +74,6 @@ export default function Dashboard({ expenses, user, collaborators, project, cate
 
 
 	useEffect(() => {
-		//console.log("use effect in Dashboard")
 		if (!expenses) return
 		let newExpenses = [...expenses]
     if (period === "thisMonth") {
@@ -113,8 +114,9 @@ export default function Dashboard({ expenses, user, collaborators, project, cate
 		})
 		setFilteredExpenses(newExpenses || [])
 		setTotal(newExpenses?.reduce((acc, expense)=> acc + (expense.amount as unknown as number), 0))
+		setIsLoading(false)
   }, [ period, selectedCategory, expenses, selectedUser ])
-	
+
 
 	const handlePeriodChange = (value: string) => {
     setPeriod(value)
